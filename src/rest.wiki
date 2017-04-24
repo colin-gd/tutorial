@@ -245,13 +245,13 @@ let read_handler id_opt () =
   | None ->
     Ocsipersist.fold_step
       (fun id loc acc -> Lwt.return ((id, loc) :: acc)) db []  
-    >>= fun locations ->
+    ~>>= fun locations ->
     let json = Yojson.Safe.to_string (locations_to_yojson locations) in
     send_json ~code:200 json
   | Some id ->
     catch
       (fun () ->
-         Ocsipersist.find db  id >>= fun location ->
+         Ocsipersist.find db  id ~>>= fun location ->
          let json =
            Yojson.Safe.to_string (location_to_yojson location) in
          send_json ~code:200 json)
@@ -280,20 +280,20 @@ let edit_handler_aux ?(create = false) id_opt (content_type, raw_content_opt) =
     | _, None ->
       send_error ~code:400 "Body content is missing"
     | Some id, Some raw_content ->
-      read_raw_content raw_content >>= fun location_str ->
+      read_raw_content raw_content ~>>= fun location_str ->
       catch (fun () ->
           (if create then
             Lwt.return_unit
            else
-            Ocsipersist.find db id >>= fun _ -> Lwt.return_unit)
-          >>= fun () ->
+            Ocsipersist.find db id ~>>= fun _ -> Lwt.return_unit)
+          ~>>= fun () ->
           let location =
             (let open Result in
             let loc_result = location_of_yojson (Yojson.Safe.from_string location_str) in
             (function
               Ok loc-> loc
             | Error _ -> raise Deriving_Yojson.Failed ) loc_result)  in
-          Ocsipersist.add db  id location >>= fun () ->
+          Ocsipersist.add db  id location ~>>= fun () ->
           send_success ())
       (function
         | Not_found ->
@@ -317,7 +317,7 @@ let%lwt db = db in
   | None ->
     send_error ~code:400 "An id must be provided to delete a location"
   | Some id ->
-    Ocsipersist.remove db id >>= fun () ->
+    Ocsipersist.remove db id ~>>= fun () ->
     send_success ()
 >>
 
@@ -431,13 +431,13 @@ let read_handler id_opt () =
   | None ->
     Ocsipersist.fold_step
       (fun id loc acc -> Lwt.return ((id, loc) :: acc)) db []  
-    >>= fun locations ->
+    ~>>= fun locations ->
     let json = Yojson.Safe.to_string (locations_to_yojson locations) in
     send_json ~code:200 json
   | Some id ->
     catch
       (fun () ->
-         Ocsipersist.find db  id >>= fun location ->
+         Ocsipersist.find db  id ~>>= fun location ->
          let json =
            Yojson.Safe.to_string (location_to_yojson location) in
          send_json ~code:200 json)
@@ -458,20 +458,20 @@ let edit_handler_aux ?(create = false) id_opt (content_type, raw_content_opt) =
     | _, None ->
       send_error ~code:400 "Body content is missing"
     | Some id, Some raw_content ->
-      read_raw_content raw_content >>= fun location_str ->
+      read_raw_content raw_content ~>>= fun location_str ->
       catch (fun () ->
           (if create then
             Lwt.return_unit
            else
-            Ocsipersist.find db id >>= fun _ -> Lwt.return_unit)
-          >>= fun () ->
+            Ocsipersist.find db id ~>>= fun _ -> Lwt.return_unit)
+          ~>>= fun () ->
           let location =
             (let open Result in
             let loc_result = location_of_yojson (Yojson.Safe.from_string location_str) in
             (function
               Ok loc-> loc
             | Error _ -> raise Deriving_Yojson.Failed ) loc_result)  in
-          Ocsipersist.add db  id location >>= fun () ->
+          Ocsipersist.add db  id location ~>>= fun () ->
           send_success ())
       (function
         | Not_found ->
@@ -492,7 +492,7 @@ let delete_handler id_opt _ =
   | None ->
     send_error ~code:400 "An id must be provided to delete a location"
   | Some id ->
-    Ocsipersist.remove db id >>= fun () ->
+    Ocsipersist.remove db id ~>>= fun () ->
     send_success ()
 
 (* Register services *)
