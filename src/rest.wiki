@@ -259,7 +259,7 @@ let read_handler id_opt () =
         | Not_found ->
           (* [id] hasn't been found, return a "Not found" message *)
           send_error ~code:404 ("Resource not found: " ^ id)
-        | _ ->  send_error ~code:500 "Internal server error )
+        | _ ->  send_error ~code:500 "Internal server error" )
 >>
 
 Next, let's create a common function for POST and PUT handlers, which have a
