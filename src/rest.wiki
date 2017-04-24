@@ -290,9 +290,9 @@ let edit_handler_aux ?(create = false) id_opt (content_type, raw_content_opt) =
           let location =
             (let open Result in
             let loc_result = location_of_yojson (Yojson.Safe.from_string location_str) in
-            (function
+            match loc_result with
               Ok loc-> loc
-            | Error _ -> raise Deriving_Yojson.Failed ) loc_result)  in
+            | Error _ -> raise Deriving_Yojson.Failed )  in
           Ocsipersist.add db  id location ~>>= fun () ->
           send_success ())
       (function
